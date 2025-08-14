@@ -1,0 +1,5 @@
+https://news.google.com/rss/search?q=stocks&hl=en-US&gl=US&ceid=US:en
+https://news.google.com/rss/search?q=site:di.se+aktie+OR+börs&hl=sv-SE&gl=SE&ceid=SE:sv
+https://news.google.com/rss/search?q=site:placera.avanza.se+aktie+OR+rek+OR+riktkurs&hl=sv-SE&gl=SE&ceid=SE:sv
+https://news.google.com/rss/search?q=site:affarsvarlden.se+aktie+OR+rek&hl=sv-SE&gl=SE&ceid=SE:sv
+https://news.google.com/rss/search?q=site:privataaffarer.se+aktie+OR+rek&hl=sv-SE&gl=SE&ceid=SE:sv
