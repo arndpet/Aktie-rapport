@@ -12,19 +12,8 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@v4
 
-      - name: Ensure it's 17:45 in Stockholm
-        id: gate
-        run: |
-          sudo timedatectl set-timezone Europe/Stockholm
-          HOUR=$(date +"%H")
-          MIN=$(date +"%M")
-          echo "Local time: $(date)"
-          if [ "$HOUR" != "17" ] || [ "$MIN" != "45" ]; then
-            echo "Not 17:45 Stockholm — exiting politely."
-            echo "RUN_OK=false" >> $GITHUB_ENV
-            exit 0
-          fi
-          echo "RUN_OK=true" >> $GITHUB_ENV
+     - name: Allow manual test run (temporarily disable time check)
+  run: echo "RUN_OK=true" >> $GITHUB_ENV
 
       - name: Set up Python
         if: env.RUN_OK == 'true'
