@@ -2,8 +2,11 @@ name: Daglig aktierapport
 
 on:
   schedule:
-    - cron: '45 * * * 1-5'
-  workflow_dispatch: {}
+    - cron: '45 * * * 1-5'     # kör varje vardag :45 (UTC) – vi kan lägga tillbaka tidslås senare
+  workflow_dispatch: {}         # gör att du kan köra för hand
+
+permissions:
+  contents: write                # VIKTIGT: behövs för att få commit/push att fungera
 
 jobs:
   build:
@@ -12,42 +15,26 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@v4
 
-     - name: Allow manual test run (temporarily disable time check)
-  run: echo "RUN_OK=true" >> $GITHUB_ENV
-
       - name: Set up Python
-        if: env.RUN_OK == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
       - name: Install deps
-        if: env.RUN_OK == 'true'
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
       - name: Run report
-        if: env.RUN_OK == 'true'
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}   # se till att hemligheten finns i Settings → Secrets → Actions
         run: |
           python run.py
 
-      - name: Save report to repo
-        if: env.RUN_OK == 'true'
+      - name: Commit and push report
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add daily_reports/*.md top_lists.json || true
-          git commit -m "EOD report $(date +"%Y-%m-%d")" || echo "Nothing to commit"
+          git commit -m "EOD report $(date +'%Y-%m-%d')" || echo "Nothing to commit"
           git push
-
-      - name: Upload artifacts
-        if: env.RUN_OK == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: rapport
-          path: |
-            daily_reports/*.md
-            top_lists.json
