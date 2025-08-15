@@ -2,11 +2,11 @@ name: Daglig aktierapport
 
 on:
   schedule:
-    - cron: '45 * * * 1-5'     # kör varje vardag :45 (UTC) – vi kan lägga tillbaka tidslås senare
-  workflow_dispatch: {}         # gör att du kan köra för hand
+    - cron: '0 * * * 1-5'        # trigga varje hel timme på vardagar (UTC)
+  workflow_dispatch: {}           # tillåt manuell körning
 
 permissions:
-  contents: write                # VIKTIGT: behövs för att få commit/push att fungera
+  contents: write
 
 jobs:
   build:
@@ -14,6 +14,26 @@ jobs:
     steps:
       - name: Check out repo
         uses: actions/checkout@v4
+
+      # --- Kör ENDAST 18:00 Stockholm (manual runs alltid tillåtna) ---
+      - name: Run only at 18:00 Stockholm (manual runs always allowed)
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "Manual run -> OK"
+            exit 0
+          fi
+          sudo timedatectl set-timezone Europe/Stockholm
+          H=$(date +%H)
+          M=$(date +%M)
+          D=$(date +%u)  # 1=Mon ... 5=Fri
+          echo "Local time: $(date)"
+          if [ "$D" -ge 1 ] && [ "$D" -le 5 ] && [ "$H" = "18" ] && [ "$M" = "00" ]; then
+            echo "It's 18:00 Stockholm — proceed"
+          else
+            echo "Not 18:00 Stockholm — skipping"
+            exit 78
+          fi
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -27,7 +47,7 @@ jobs:
 
       - name: Run report
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}   # se till att hemligheten finns i Settings → Secrets → Actions
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           python run.py
 
