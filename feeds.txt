@@ -1,5 +1,8 @@
-https://news.google.com/rss/search?q=stocks&hl=en-US&gl=US&ceid=US:en
-https://news.google.com/rss/search?q=site:di.se+aktie+OR+börs&hl=sv-SE&gl=SE&ceid=SE:sv
-https://news.google.com/rss/search?q=site:placera.avanza.se+aktie+OR+rek+OR+riktkurs&hl=sv-SE&gl=SE&ceid=SE:sv
-https://news.google.com/rss/search?q=site:affarsvarlden.se+aktie+OR+rek&hl=sv-SE&gl=SE&ceid=SE:sv
-https://news.google.com/rss/search?q=site:privataaffarer.se+aktie+OR+rek&hl=sv-SE&gl=SE&ceid=SE:sv
+https://news.google.com/rss/search?q=site:di.se+aktie+OR+börs+OR+rek+OR+riktkurs&hl=sv-SE&gl=SE&ceid=SE:sv
+https://news.google.com/rss/search?q=site:placera.avanza.se+aktie+OR+rek+OR+riktkurs+OR+köp+OR+sälj&hl=sv-SE&gl=SE&ceid=SE:sv
+https://news.google.com/rss/search?q=site:affarsvarlden.se+aktie+OR+rek+OR+riktkurs&hl=sv-SE&gl=SE&ceid=SE:sv
+https://news.google.com/rss/search?q=site:privataaffarer.se+aktie+OR+rek+OR+riktkurs&hl=sv-SE&gl=SE&ceid=SE:sv
+https://news.google.com/rss/search?q=site:svd.se+Näringsliv+aktie+OR+börs+OR+rek+OR+riktkurs&hl=sv-SE&gl=SE&ceid=SE:sv
+https://news.google.com/rss/search?q=site:gp.se+Näringsliv+aktie+OR+börs+OR+rek+OR+riktkurs&hl=sv-SE&gl=SE&ceid=SE:sv
+https://news.google.com/rss/search?q=site:sydsvenskan.se+Näringsliv+aktie+OR+börs+OR+rek+OR+riktkurs&hl=sv-SE&gl=SE&ceid=SE:sv
+https://news.google.com/rss/search?q=site:nwt.se+Näringsliv+aktie+OR+börs+OR+rek+OR+riktkurs&hl=sv-SE&gl=SE&ceid=SE:sv
