@@ -106,8 +106,30 @@ for art in articles:
   except Exception as ex:
     print("LLM error on:", art.get('url'), ex, file=sys.stderr)
 
+# Om inga träffar: skapa ändå en tom rapport + tomma topplistor
 if not records:
-  print("Inga extraktioner idag. Avslutar.")
+  from datetime import datetime, timezone
+  from dateutil import tz
+  stockholm = tz.gettz('Europe/Stockholm')
+  today = datetime.now(stockholm).strftime('%Y-%m-%d')
+
+  os.makedirs('daily_reports', exist_ok=True)
+  path = os.path.join('daily_reports', f'{today}.md')
+
+  # Spara topplistor (tomma)
+  with open("top_lists.json", "wb") as f:
+    f.write(orjson.dumps({
+      "generated_at": datetime.now(timezone.utc).isoformat(),
+      "positives": [],
+      "negatives": []
+    }))
+
+  # Skriv en enkel rapportfil så att något alltid committas
+  with open(path, 'w', encoding='utf-8') as f:
+    f.write(f"# Daglig aktierapport {today}\n\n")
+    f.write("Inga extraktioner idag. Lägg ev. till fler källor i `feeds.txt` och kör igen.\n")
+
+  print("Klart (tom rapport skapad):", path, "och top_lists.json skapade.")
   sys.exit(0)
 
 # --- Aggregera ---
