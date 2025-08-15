@@ -2,11 +2,15 @@ name: Daglig aktierapport
 
 on:
   schedule:
-    - cron: '0 * * * 1-5'        # trigga varje hel timme på vardagar (UTC)
+    - cron: '0 * * * 1-5'        # trigga varje hel timme vardagar (UTC)
   workflow_dispatch: {}           # tillåt manuell körning
 
 permissions:
   contents: write
+
+concurrency:
+  group: daily-aktierapport
+  cancel-in-progress: true        # undvik överlappande körningar
 
 jobs:
   build:
@@ -14,47 +18,67 @@ jobs:
     steps:
       - name: Check out repo
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
 
-      # --- Kör ENDAST 18:00 Stockholm (manual runs alltid tillåtna) ---
-      - name: Run only at 18:00 Stockholm (manual runs always allowed)
+      # Bestäm om vi ska köra: manuellt ALLTID; schemalagt endast 18:00 Stockholm
+      - name: Gate (run only 18:00 Stockholm; manual always allowed)
         shell: bash
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "Manual run -> OK"
+            echo "RUN_OK=true" >> $GITHUB_ENV
+            echo "Manual run -> proceed"
             exit 0
           fi
           sudo timedatectl set-timezone Europe/Stockholm
-          H=$(date +%H)
-          M=$(date +%M)
-          D=$(date +%u)  # 1=Mon ... 5=Fri
+          H=$(date +%H); M=$(date +%M); D=$(date +%u)
           echo "Local time: $(date)"
           if [ "$D" -ge 1 ] && [ "$D" -le 5 ] && [ "$H" = "18" ] && [ "$M" = "00" ]; then
-            echo "It's 18:00 Stockholm — proceed"
+            echo "RUN_OK=true" >> $GITHUB_ENV
+            echo "Scheduled run at 18:00 -> proceed"
           else
-            echo "Not 18:00 Stockholm — skipping"
-            exit 78
+            echo "RUN_OK=false" >> $GITHUB_ENV
+            echo "Not 18:00 Stockholm -> skipping scheduled run"
           fi
 
       - name: Set up Python
+        if: env.RUN_OK == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
       - name: Install deps
+        if: env.RUN_OK == 'true'
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
       - name: Run report
+        if: env.RUN_OK == 'true'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           python run.py
+          # Sätt dagens datum för ev. email/artifact
+          sudo timedatectl set-timezone Europe/Stockholm
+          echo "TODAY=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
 
-      - name: Commit and push report
+      # Hämta senaste ändringar innan vi pushar (löser 'rejected, fetch first')
+      - name: Pull latest (rebase)
+        if: env.RUN_OK == 'true'
+        run: |
+          git fetch origin main
+          git pull --rebase origin main || true
+
+      - name: Commit and push report (with retry)
+        if: env.RUN_OK == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add daily_reports/*.md top_lists.json || true
           git commit -m "EOD report $(date +'%Y-%m-%d')" || echo "Nothing to commit"
-          git push
+          # Försök pusha upp till 3 gånger om race condition uppstår
+          for i in 1 2 3; do
+            git push && break || { echo "Push failed (try $i) — pulling and retrying"; git pull --rebase origin main || true; sleep 2; }
+          done
